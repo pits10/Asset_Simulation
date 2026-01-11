@@ -13,11 +13,16 @@ interface SimulationStore extends SimulationState {
   // 年次データの上書き情報
   yearDataOverrides: Map<number, Partial<YearData>>;
 
+  // UI state: Age range for chart display
+  ageRangeStart: number;
+  ageRangeEnd: number;
+
   // アクション
   updateConfig: (config: Partial<SimulationConfig>) => void;
   setHousePurchase: (purchase: HousePurchase | null) => void;
   updateYearData: (age: number, data: Partial<YearData>) => void;
   setSelectedAge: (age: number | null) => void;
+  setAgeRange: (start: number, end: number) => void;
   recalculate: () => void;
   resetToDefaults: () => void;
   importData: (data: string) => void;
@@ -49,6 +54,8 @@ export const useSimulationStore = create<SimulationStore>()(
       yearData: [],
       selectedAge: null,
       yearDataOverrides: new Map(),
+      ageRangeStart: 24,
+      ageRangeEnd: 70,
 
       updateConfig: (newConfig) => {
         set((state) => ({
@@ -74,6 +81,10 @@ export const useSimulationStore = create<SimulationStore>()(
         set({ selectedAge: age });
       },
 
+      setAgeRange: (start, end) => {
+        set({ ageRangeStart: start, ageRangeEnd: end });
+      },
+
       recalculate: () => {
         const { config, housePurchase, yearDataOverrides } = get();
         const yearData = calculateSimulation(
@@ -91,6 +102,8 @@ export const useSimulationStore = create<SimulationStore>()(
           yearData: [],
           selectedAge: null,
           yearDataOverrides: new Map(),
+          ageRangeStart: 24,
+          ageRangeEnd: 70,
         });
         get().recalculate();
       },
@@ -130,6 +143,8 @@ export const useSimulationStore = create<SimulationStore>()(
         config: state.config,
         housePurchase: state.housePurchase,
         yearDataOverrides: Object.fromEntries(state.yearDataOverrides),
+        ageRangeStart: state.ageRangeStart,
+        ageRangeEnd: state.ageRangeEnd,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
