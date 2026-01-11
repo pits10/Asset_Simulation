@@ -1,16 +1,100 @@
-import type { SimulationConfig, HousePurchase, YearData } from "../types";
+import type {
+  SimulationConfig,
+  HousePurchase,
+  YearData,
+  LifeEvent,
+} from "../types";
 
 /**
- * 所得税率を計算（簡易版・累進課税の概算）
- * 年収レンジ別の税率テーブル
+ * 給与所得控除を計算（2020年以降の新制度に基づく簡易版）
  */
-export function calculateIncomeTaxRate(annualIncome: number): number {
-  if (annualIncome <= 1_950_000) return 0.05;
-  if (annualIncome <= 3_300_000) return 0.10;
-  if (annualIncome <= 6_950_000) return 0.20;
-  if (annualIncome <= 9_000_000) return 0.23;
-  if (annualIncome <= 18_000_000) return 0.33;
-  return 0.40;
+export function calculateEmploymentIncomeDeduction(
+  grossIncome: number
+): number {
+  if (grossIncome <= 1_625_000) {
+    return 550_000;
+  } else if (grossIncome <= 1_800_000) {
+    return grossIncome * 0.4 - 100_000;
+  } else if (grossIncome <= 3_600_000) {
+    return grossIncome * 0.3 + 80_000;
+  } else if (grossIncome <= 6_600_000) {
+    return grossIncome * 0.2 + 440_000;
+  } else if (grossIncome <= 8_500_000) {
+    return grossIncome * 0.1 + 1_100_000;
+  } else {
+    return 1_950_000;
+  }
+}
+
+/**
+ * 所得税を計算（日本の累進課税に基づく詳細版）
+ */
+export function calculateIncomeTax(grossIncome: number): number {
+  const employmentDeduction = calculateEmploymentIncomeDeduction(grossIncome);
+  const basicDeduction = 480_000; // 基礎控除
+  const taxableIncome = Math.max(
+    0,
+    grossIncome - employmentDeduction - basicDeduction
+  );
+
+  let tax = 0;
+
+  if (taxableIncome <= 1_950_000) {
+    tax = taxableIncome * 0.05;
+  } else if (taxableIncome <= 3_300_000) {
+    tax = 1_950_000 * 0.05 + (taxableIncome - 1_950_000) * 0.1;
+  } else if (taxableIncome <= 6_950_000) {
+    tax =
+      1_950_000 * 0.05 +
+      (3_300_000 - 1_950_000) * 0.1 +
+      (taxableIncome - 3_300_000) * 0.2;
+  } else if (taxableIncome <= 9_000_000) {
+    tax =
+      1_950_000 * 0.05 +
+      (3_300_000 - 1_950_000) * 0.1 +
+      (6_950_000 - 3_300_000) * 0.2 +
+      (taxableIncome - 6_950_000) * 0.23;
+  } else if (taxableIncome <= 18_000_000) {
+    tax =
+      1_950_000 * 0.05 +
+      (3_300_000 - 1_950_000) * 0.1 +
+      (6_950_000 - 3_300_000) * 0.2 +
+      (9_000_000 - 6_950_000) * 0.23 +
+      (taxableIncome - 9_000_000) * 0.33;
+  } else {
+    tax =
+      1_950_000 * 0.05 +
+      (3_300_000 - 1_950_000) * 0.1 +
+      (6_950_000 - 3_300_000) * 0.2 +
+      (9_000_000 - 6_950_000) * 0.23 +
+      (18_000_000 - 9_000_000) * 0.33 +
+      (taxableIncome - 18_000_000) * 0.4;
+  }
+
+  return Math.round(tax);
+}
+
+/**
+ * 住民税を計算
+ */
+export function calculateResidentTax(grossIncome: number): number {
+  const employmentDeduction = calculateEmploymentIncomeDeduction(grossIncome);
+  const basicDeduction = 430_000; // 住民税の基礎控除
+  const taxableIncome = Math.max(
+    0,
+    grossIncome - employmentDeduction - basicDeduction
+  );
+
+  // 住民税率は一律10%
+  return Math.round(taxableIncome * 0.1);
+}
+
+/**
+ * 社会保険料を計算（簡易版）
+ */
+export function calculateSocialInsurance(grossIncome: number): number {
+  // 健康保険 + 厚生年金の概算（約14.5%）
+  return Math.round(grossIncome * 0.145);
 }
 
 /**
@@ -22,10 +106,9 @@ export function calculateNetIncome(grossIncome: number): {
   socialInsurance: number;
   netIncome: number;
 } {
-  const incomeTaxRate = calculateIncomeTaxRate(grossIncome);
-  const incomeTax = Math.round(grossIncome * incomeTaxRate);
-  const residentTax = Math.round(grossIncome * 0.10); // 住民税10%
-  const socialInsurance = Math.round(grossIncome * 0.15); // 社会保険料15%
+  const incomeTax = calculateIncomeTax(grossIncome);
+  const residentTax = calculateResidentTax(grossIncome);
+  const socialInsurance = calculateSocialInsurance(grossIncome);
 
   const netIncome = grossIncome - incomeTax - residentTax - socialInsurance;
 
@@ -140,6 +223,8 @@ export function initializeYearData(age: number): YearData {
     salary: null,
     livingCost: null,
     entertainmentCost: 0,
+    otherExpenses: 0,
+    otherExpensesMemo: "",
     investmentContribution: 0,
     mortgagePayment: 0,
     mortgageInterest: 0,
@@ -169,6 +254,7 @@ export function initializeYearData(age: number): YearData {
 export function calculateSimulation(
   config: SimulationConfig,
   housePurchase: HousePurchase | null,
+  lifeEvents: LifeEvent[],
   yearDataOverrides: Map<number, Partial<YearData>>
 ): YearData[] {
   const results: YearData[] = [];
@@ -181,18 +267,50 @@ export function calculateSimulation(
     mortgageSchedule.map((item) => [item.age, item])
   );
 
+  // ライフイベントを年齢でグループ化
+  const lifeEventsByAge = new Map<number, LifeEvent[]>();
+  lifeEvents.forEach((event) => {
+    const events = lifeEventsByAge.get(event.age) || [];
+    events.push(event);
+    lifeEventsByAge.set(event.age, events);
+  });
+
   // 前年の資産状態
   let prevCash = config.initialCash;
   let prevInvestment = config.initialInvestment;
   let prevPropertyValue = 0;
 
+  // ライフイベントによる累積的な変更を追跡
+  let cumulativeSalaryChange = 0;
+  let cumulativeLivingCostMultiplier = 1.0;
+  let cumulativeLivingCostChange = 0;
+
   for (let age = config.startAge; age <= config.endAge; age++) {
     const yearData = initializeYearData(age);
     const override = yearDataOverrides.get(age);
+    const eventsThisYear = lifeEventsByAge.get(age) || [];
+
+    // ライフイベントの影響を適用
+    eventsThisYear.forEach((event) => {
+      if (event.salaryChange !== undefined) {
+        cumulativeSalaryChange = event.salaryChange; // 絶対値で上書き
+      }
+      if (event.livingCostMultiplier !== undefined) {
+        cumulativeLivingCostMultiplier *= event.livingCostMultiplier;
+      }
+      if (event.livingCostChange !== undefined) {
+        cumulativeLivingCostChange += event.livingCostChange;
+      }
+    });
 
     // 1. 収入の計算
-    const grossIncome =
-      override?.salary ?? calculateSalary(config, age);
+    let grossIncome = override?.salary ?? calculateSalary(config, age);
+
+    // ライフイベントの影響を反映（年収変更がある場合は上書き）
+    if (cumulativeSalaryChange > 0) {
+      grossIncome = cumulativeSalaryChange;
+    }
+
     yearData.grossIncome = grossIncome;
     yearData.salary = grossIncome;
 
@@ -204,11 +322,25 @@ export function calculateSimulation(
     yearData.netIncome = netIncome;
 
     // 2. 支出の計算
-    const livingCost =
-      override?.livingCost ?? calculateLivingCost(config, age);
-    yearData.livingCost = livingCost;
+    let livingCost = override?.livingCost ?? calculateLivingCost(config, age);
+
+    // ライフイベントの影響を反映
+    livingCost =
+      livingCost * cumulativeLivingCostMultiplier + cumulativeLivingCostChange;
+
+    yearData.livingCost = Math.round(livingCost);
     yearData.entertainmentCost = override?.entertainmentCost ?? 0;
+    yearData.otherExpenses = override?.otherExpenses ?? 0;
+    yearData.otherExpensesMemo = override?.otherExpensesMemo ?? "";
     yearData.investmentContribution = override?.investmentContribution ?? 0;
+
+    // ライフイベントの一時費用を追加
+    let oneTimeCosts = 0;
+    eventsThisYear.forEach((event) => {
+      if (event.oneTimeCost) {
+        oneTimeCosts += event.oneTimeCost;
+      }
+    });
 
     // 住宅ローン
     const mortgage = mortgageMap.get(age);
@@ -228,8 +360,10 @@ export function calculateSimulation(
     }
 
     yearData.totalExpense =
-      livingCost +
+      yearData.livingCost +
       yearData.entertainmentCost +
+      yearData.otherExpenses +
+      oneTimeCosts +
       yearData.investmentContribution +
       yearData.mortgagePayment +
       yearData.propertyTax +
