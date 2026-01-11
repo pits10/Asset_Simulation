@@ -8,17 +8,17 @@ export default function HousingPage() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-          Housing
+          住宅・不動産
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-1">
-          Mortgage and property analysis
+          住宅ローンと不動産の分析
         </p>
       </div>
 
       <Card padding="lg">
         <div className="text-center py-12">
           <p className="text-slate-600 dark:text-slate-400">
-            Housing view coming soon...
+            住宅・不動産の詳細ビューは現在準備中です
           </p>
         </div>
       </Card>

@@ -24,20 +24,20 @@ export const AgeRangeSelector: React.FC = () => {
 
   const handleSave = () => {
     if (tempStart >= tempEnd) {
-      addToast("Start age must be less than end age", "error");
+      addToast("開始年齢は終了年齢より小さくしてください", "error");
       return;
     }
 
     if (tempStart < config.startAge || tempEnd > config.endAge) {
       addToast(
-        `Age range must be between ${config.startAge} and ${config.endAge}`,
+        `年齢範囲は${config.startAge}歳から${config.endAge}歳の間で設定してください`,
         "error"
       );
       return;
     }
 
     setAgeRange(tempStart, tempEnd);
-    addToast("Age range updated", "success");
+    addToast("年齢範囲を更新しました", "success");
     closeModal();
   };
 
@@ -50,26 +50,25 @@ export const AgeRangeSelector: React.FC = () => {
     <Modal
       isOpen={isOpen}
       onClose={closeModal}
-      title="Select Age Range"
+      title="年齢範囲を選択"
       size="md"
       footer={
         <>
           <Button variant="ghost" onClick={closeModal}>
-            Cancel
+            キャンセル
           </Button>
           <Button variant="secondary" onClick={handleReset}>
-            Reset to Default
+            デフォルトに戻す
           </Button>
           <Button variant="primary" onClick={handleSave}>
-            Apply
+            適用
           </Button>
         </>
       }
     >
       <div className="space-y-6">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Adjust the age range to display in charts. This will filter the
-          timeline view across all pages.
+          グラフに表示する年齢範囲を調整します。全ページのタイムライン表示に反映されます。
         </p>
 
         {/* Visual Range Display */}
@@ -77,7 +76,7 @@ export const AgeRangeSelector: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="text-center">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-                Start Age
+                開始年齢
               </p>
               <p className="text-3xl font-bold text-blue-500 dark:text-blue-400 tabular-nums">
                 {tempStart}
@@ -94,7 +93,7 @@ export const AgeRangeSelector: React.FC = () => {
             </div>
             <div className="text-center">
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
-                End Age
+                終了年齢
               </p>
               <p className="text-3xl font-bold text-blue-500 dark:text-blue-400 tabular-nums">
                 {tempEnd}
@@ -105,11 +104,10 @@ export const AgeRangeSelector: React.FC = () => {
           {/* Range Info */}
           <div className="text-center">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Displaying{" "}
               <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
                 {tempEnd - tempStart}
-              </span>{" "}
-              years of data
+              </span>
+              年分のデータを表示
             </p>
           </div>
         </div>
@@ -117,7 +115,7 @@ export const AgeRangeSelector: React.FC = () => {
         {/* Start Age Input */}
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            Start Age
+            開始年齢
           </label>
           <input
             type="range"
@@ -140,7 +138,7 @@ export const AgeRangeSelector: React.FC = () => {
         {/* End Age Input */}
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-            End Age
+            終了年齢
           </label>
           <input
             type="range"
@@ -163,8 +161,7 @@ export const AgeRangeSelector: React.FC = () => {
         {/* Info Box */}
         <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>Tip:</strong> Use a narrower range for detailed analysis, or
-            expand it for long-term overview.
+            <strong>ヒント:</strong> 詳細分析には狭い範囲を、長期的な概要には広い範囲を設定してください。
           </p>
         </div>
       </div>

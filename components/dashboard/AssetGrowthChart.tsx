@@ -35,7 +35,7 @@ export const AssetGrowthChart: React.FC = () => {
   if (chartData.length === 0) {
     return (
       <Card className="h-[500px] flex items-center justify-center">
-        <p className="text-slate-500 dark:text-slate-400">No data available</p>
+        <p className="text-slate-500 dark:text-slate-400">データがありません</p>
       </Card>
     );
   }
@@ -43,7 +43,7 @@ export const AssetGrowthChart: React.FC = () => {
   return (
     <Card padding="lg">
       <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
-        Asset Growth Over Time
+        資産推移
       </h3>
 
       <ResponsiveContainer width="100%" height={450}>
@@ -69,7 +69,7 @@ export const AssetGrowthChart: React.FC = () => {
             dataKey="age"
             tick={{ fill: "rgb(100, 116, 139)" }}
             tickLine={{ stroke: "rgb(203, 213, 225)" }}
-            label={{ value: "Age", position: "insideBottom", offset: -5, fill: "rgb(100, 116, 139)" }}
+            label={{ value: "年齢", position: "insideBottom", offset: -5, fill: "rgb(100, 116, 139)" }}
           />
 
           <YAxis
@@ -92,7 +92,7 @@ export const AssetGrowthChart: React.FC = () => {
             }}
             labelStyle={{ fontWeight: 600, marginBottom: "8px" }}
             formatter={(value: number) => `¥${value.toFixed(1)}万`}
-            labelFormatter={(label) => `Age: ${label}`}
+            labelFormatter={(label) => `年齢: ${label}`}
           />
 
           <Legend
@@ -108,7 +108,7 @@ export const AssetGrowthChart: React.FC = () => {
             stroke="rgb(20, 184, 166)"
             strokeWidth={2}
             fill="url(#colorInvestment)"
-            name="Investment Assets"
+            name="投資資産"
           />
 
           <Area
@@ -117,7 +117,7 @@ export const AssetGrowthChart: React.FC = () => {
             stroke="rgb(16, 185, 129)"
             strokeWidth={2}
             fill="url(#colorFinancial)"
-            name="Financial Assets"
+            name="金融資産"
           />
 
           <Line
@@ -126,7 +126,7 @@ export const AssetGrowthChart: React.FC = () => {
             stroke="rgb(59, 130, 246)"
             strokeWidth={3}
             dot={false}
-            name="Total Assets"
+            name="総資産"
           />
 
           <Line
@@ -136,7 +136,7 @@ export const AssetGrowthChart: React.FC = () => {
             strokeWidth={2}
             strokeDasharray="5 5"
             dot={false}
-            name="Liabilities"
+            name="負債"
           />
 
           <Line
@@ -146,7 +146,7 @@ export const AssetGrowthChart: React.FC = () => {
             strokeWidth={2}
             strokeDasharray="3 3"
             dot={false}
-            name="Net Worth"
+            name="純資産"
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -11,9 +11,9 @@ export default function SettingsPage() {
   const { addToast } = useUIStore();
 
   const handleReset = () => {
-    if (confirm("Are you sure you want to reset all settings to defaults?")) {
+    if (confirm("全ての設定をデフォルトに戻しますか？")) {
       resetToDefaults();
-      addToast("Settings reset to defaults", "success");
+      addToast("設定をデフォルトに戻しました", "success");
     }
   };
 
@@ -21,10 +21,10 @@ export default function SettingsPage() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-          Settings
+          設定
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-1">
-          Configure your financial simulation
+          資産シミュレーションの設定
         </p>
       </div>
 
@@ -32,33 +32,33 @@ export default function SettingsPage() {
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-            Personal Information
+            個人情報
           </h3>
           <Button variant="ghost" size="sm">
-            Edit
+            編集
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-slate-500 dark:text-slate-400">Start Age</p>
+            <p className="text-slate-500 dark:text-slate-400">開始年齢</p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {config.startAge}
             </p>
           </div>
           <div>
-            <p className="text-slate-500 dark:text-slate-400">End Age</p>
+            <p className="text-slate-500 dark:text-slate-400">終了年齢</p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {config.endAge}
             </p>
           </div>
           <div>
-            <p className="text-slate-500 dark:text-slate-400">Current Age</p>
+            <p className="text-slate-500 dark:text-slate-400">現在年齢</p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {config.currentAge}
             </p>
           </div>
           <div>
-            <p className="text-slate-500 dark:text-slate-400">Initial Cash</p>
+            <p className="text-slate-500 dark:text-slate-400">初期資金</p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {formatCurrency(config.initialCash)}
             </p>
@@ -70,22 +70,22 @@ export default function SettingsPage() {
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-            Income Settings
+            収入設定
           </h3>
           <Button variant="ghost" size="sm">
-            Edit
+            編集
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-slate-500 dark:text-slate-400">Base Salary</p>
+            <p className="text-slate-500 dark:text-slate-400">基本年収</p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
-              {formatCurrency(config.baseSalary)}/year
+              {formatCurrency(config.baseSalary)}/年
             </p>
           </div>
           <div>
             <p className="text-slate-500 dark:text-slate-400">
-              Annual Growth Rate
+              年間成長率
             </p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {(config.salaryGrowthRate * 100).toFixed(1)}%
@@ -98,24 +98,24 @@ export default function SettingsPage() {
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-            Expense Settings
+            支出設定
           </h3>
           <Button variant="ghost" size="sm">
-            Edit
+            編集
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-slate-500 dark:text-slate-400">
-              Base Living Cost
+              基本生活費
             </p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
-              {formatCurrency(config.baseLivingCost)}/year
+              {formatCurrency(config.baseLivingCost)}/年
             </p>
           </div>
           <div>
             <p className="text-slate-500 dark:text-slate-400">
-              Inflation Rate
+              物価上昇率
             </p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {(config.livingCostInflationRate * 100).toFixed(1)}%
@@ -128,16 +128,16 @@ export default function SettingsPage() {
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-            Investment Strategy
+            投資戦略
           </h3>
           <Button variant="ghost" size="sm">
-            Edit
+            編集
           </Button>
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-slate-500 dark:text-slate-400">
-              Expected Return Rate
+              期待リターン率
             </p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {(config.investmentReturnRate * 100).toFixed(1)}%
@@ -145,14 +145,14 @@ export default function SettingsPage() {
           </div>
           <div>
             <p className="text-slate-500 dark:text-slate-400">
-              Cash Threshold
+              現金閾値
             </p>
             <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
               {formatCurrency(config.investmentThreshold)}
             </p>
           </div>
           <div>
-            <p className="text-slate-500 dark:text-slate-400">Strategy</p>
+            <p className="text-slate-500 dark:text-slate-400">戦略</p>
             <p className="text-slate-900 dark:text-slate-50 font-medium capitalize">
               {config.investmentStrategy}
             </p>
@@ -160,7 +160,7 @@ export default function SettingsPage() {
           {config.investmentStrategy === "custom" && (
             <div>
               <p className="text-slate-500 dark:text-slate-400">
-                Investment Ratio
+                投資比率
               </p>
               <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
                 {(config.investmentRatio * 100).toFixed(0)}%
@@ -174,17 +174,17 @@ export default function SettingsPage() {
       <Card padding="lg">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-            Housing Configuration
+            住宅設定
           </h3>
           <Button variant="ghost" size="sm">
-            {housePurchase ? "Edit" : "Add"}
+            {housePurchase ? "編集" : "追加"}
           </Button>
         </div>
         {housePurchase ? (
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-slate-500 dark:text-slate-400">
-                Purchase Age
+                購入年齢
               </p>
               <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
                 {housePurchase.age}
@@ -192,7 +192,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <p className="text-slate-500 dark:text-slate-400">
-                Property Price
+                物件価格
               </p>
               <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
                 {formatCurrency(housePurchase.propertyPrice)}
@@ -200,22 +200,22 @@ export default function SettingsPage() {
             </div>
             <div>
               <p className="text-slate-500 dark:text-slate-400">
-                Down Payment
+                頭金
               </p>
               <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
                 {formatCurrency(housePurchase.downPayment)}
               </p>
             </div>
             <div>
-              <p className="text-slate-500 dark:text-slate-400">Loan Term</p>
+              <p className="text-slate-500 dark:text-slate-400">ローン期間</p>
               <p className="text-slate-900 dark:text-slate-50 font-medium tabular-nums">
-                {housePurchase.loanTerm} years
+                {housePurchase.loanTerm}年
               </p>
             </div>
           </div>
         ) : (
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            No house purchase configured
+            住宅購入の設定がありません
           </p>
         )}
       </Card>
@@ -223,15 +223,15 @@ export default function SettingsPage() {
       {/* Data Management */}
       <Card padding="lg">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
-          Data Management
+          データ管理
         </h3>
         <div className="flex gap-3">
           <Button variant="danger" onClick={handleReset}>
-            Reset to Defaults
+            デフォルトに戻す
           </Button>
         </div>
         <p className="text-xs text-slate-400 dark:text-slate-500 mt-4">
-          Last saved: Auto-saved to browser storage
+          最終保存: ブラウザストレージに自動保存
         </p>
       </Card>
     </div>
