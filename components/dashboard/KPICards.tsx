@@ -75,7 +75,7 @@ export const KPICards: React.FC = () => {
   if (!kpiData) {
     return (
       <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-        No simulation data available. Please check settings.
+        シミュレーションデータがありません。設定を確認してください。
       </div>
     );
   }
@@ -83,32 +83,32 @@ export const KPICards: React.FC = () => {
   return (
     <div className="grid grid-cols-6 gap-4">
       <KPICard
-        label="Total Assets"
+        label="総資産"
         value={kpiData.totalAssets.value}
         change={kpiData.totalAssets.change}
       />
       <KPICard
-        label="Net Worth"
+        label="純資産"
         value={kpiData.netWorth.value}
         change={kpiData.netWorth.change}
       />
       <KPICard
-        label="Financial Assets"
+        label="金融資産"
         value={kpiData.financialAssets.value}
         change={kpiData.financialAssets.change}
       />
       <KPICard
-        label="Investment Assets"
+        label="投資資産"
         value={kpiData.investmentAssets.value}
         change={kpiData.investmentAssets.change}
       />
       <KPICard
-        label="Mortgage Balance"
+        label="住宅ローン残高"
         value={kpiData.mortgageBalance.value}
         change={kpiData.mortgageBalance.change}
       />
       <KPICard
-        label="Annual Net Income"
+        label="年間純収入"
         value={kpiData.netIncome.value}
         change={kpiData.netIncome.change}
       />

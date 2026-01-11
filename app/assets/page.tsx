@@ -8,17 +8,17 @@ export default function AssetsPage() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-          Assets
+          金融資産
         </h1>
         <p className="text-slate-600 dark:text-slate-400 mt-1">
-          Detailed asset composition and growth
+          資産の内訳と推移の詳細
         </p>
       </div>
 
       <Card padding="lg">
         <div className="text-center py-12">
           <p className="text-slate-600 dark:text-slate-400">
-            Assets view coming soon...
+            資産の詳細ビューは現在準備中です
           </p>
         </div>
       </Card>

@@ -30,7 +30,7 @@ export const CashflowBarChart: React.FC = () => {
   if (chartData.length === 0) {
     return (
       <Card className="h-[300px] flex items-center justify-center">
-        <p className="text-slate-500 dark:text-slate-400">No data available</p>
+        <p className="text-slate-500 dark:text-slate-400">データがありません</p>
       </Card>
     );
   }
@@ -38,7 +38,7 @@ export const CashflowBarChart: React.FC = () => {
   return (
     <Card padding="lg">
       <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
-        Annual Cashflow
+        年間キャッシュフロー
       </h3>
 
       <ResponsiveContainer width="100%" height={250}>
@@ -72,9 +72,9 @@ export const CashflowBarChart: React.FC = () => {
             labelStyle={{ fontWeight: 600, marginBottom: "8px" }}
             formatter={(value: number) => [
               `¥${value.toFixed(1)}万`,
-              value >= 0 ? "Surplus" : "Deficit",
+              value >= 0 ? "黒字" : "赤字",
             ]}
-            labelFormatter={(label) => `Age: ${label}`}
+            labelFormatter={(label) => `年齢: ${label}`}
           />
 
           <ReferenceLine y={0} stroke="rgb(100, 116, 139)" strokeWidth={2} />

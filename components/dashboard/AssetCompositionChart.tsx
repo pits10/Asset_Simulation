@@ -24,7 +24,7 @@ export const AssetCompositionChart: React.FC = () => {
 
     if (latestData.cash > 0) {
       data.push({
-        name: "Cash",
+        name: "現金",
         value: latestData.cash / 10000,
         percentage: 0,
       });
@@ -32,7 +32,7 @@ export const AssetCompositionChart: React.FC = () => {
 
     if (latestData.investment > 0) {
       data.push({
-        name: "Investment",
+        name: "投資",
         value: latestData.investment / 10000,
         percentage: 0,
       });
@@ -40,7 +40,7 @@ export const AssetCompositionChart: React.FC = () => {
 
     if (latestData.propertyValue && latestData.propertyValue > 0) {
       data.push({
-        name: "Property",
+        name: "不動産",
         value: latestData.propertyValue / 10000,
         percentage: 0,
       });
@@ -63,7 +63,7 @@ export const AssetCompositionChart: React.FC = () => {
   if (chartData.length === 0) {
     return (
       <Card className="h-[300px] flex items-center justify-center">
-        <p className="text-slate-500 dark:text-slate-400">No data available</p>
+        <p className="text-slate-500 dark:text-slate-400">データがありません</p>
       </Card>
     );
   }
@@ -71,7 +71,7 @@ export const AssetCompositionChart: React.FC = () => {
   return (
     <Card padding="lg">
       <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
-        Asset Composition
+        資産構成
       </h3>
 
       <ResponsiveContainer width="100%" height={250}>
@@ -91,9 +91,9 @@ export const AssetCompositionChart: React.FC = () => {
               <Cell
                 key={`cell-${index}`}
                 fill={
-                  entry.name === "Cash"
+                  entry.name === "現金"
                     ? COLORS.cash
-                    : entry.name === "Investment"
+                    : entry.name === "投資"
                     ? COLORS.investment
                     : COLORS.property
                 }
@@ -133,7 +133,7 @@ export const AssetCompositionChart: React.FC = () => {
             dominantBaseline="middle"
             className="text-sm fill-slate-500 dark:fill-slate-400"
           >
-            Total Assets
+            総資産
           </text>
           <text
             x="50%"
