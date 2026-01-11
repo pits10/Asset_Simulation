@@ -5,8 +5,8 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ToastContainer } from "@/components/shared";
 
 export const metadata: Metadata = {
-  title: "Asset Simulator | Financial Planning",
-  description: "Modern fintech-style personal finance simulation dashboard",
+  title: "資産シミュレーション | 人生設計ツール",
+  description: "海外Fintech水準の資産シミュレーション・人生設計ダッシュボード",
 };
 
 export default function RootLayout({
@@ -15,24 +15,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ja" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#F8FAFC" />
       </head>
-      <body className="antialiased">
+      <body className="antialiased font-sans">
         <ThemeProvider>
           {/* Layout Structure */}
-          <div className="flex min-h-screen">
+          <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
             {/* Sidebar */}
             <Sidebar />
 
             {/* Main Content Area */}
-            <div className="flex-1 ml-64">
+            <div className="flex-1 ml-64 transition-all duration-300">
               {/* Top Bar */}
               <TopBar />
 
               {/* Page Content */}
-              <main className="mt-16 p-6 bg-slate-50 dark:bg-slate-900 min-h-[calc(100vh-4rem)] transition-theme">
+              <main className="mt-16 p-6 lg:p-8 min-h-[calc(100vh-4rem)]">
                 {children}
               </main>
             </div>

@@ -1,12 +1,42 @@
 // 投資戦略タイプ
 export type InvestmentStrategy = "threshold" | "all" | "custom";
 
+// ライフイベント種類
+export type LifeEventType =
+  | "marriage"
+  | "childbirth"
+  | "job_change"
+  | "house_purchase"
+  | "custom";
+
+// ライフイベント
+export interface LifeEvent {
+  id: string;
+  age: number;
+  type: LifeEventType;
+  label: string; // 表示名（例：「結婚」「第一子誕生」）
+  description?: string; // 詳細説明（任意）
+
+  // 影響（任意）
+  salaryChange?: number; // 年収の変更額（絶対値）
+  livingCostMultiplier?: number; // 生活費の倍率（例：1.3 = 30%増加）
+  livingCostChange?: number; // 生活費の変更額（絶対値）
+  oneTimeCost?: number; // 一時費用（例：結婚式費用）
+}
+
 // グローバル設定
 export interface SimulationConfig {
+  // ユーザー情報
+  userName: string;
+
   // 年齢範囲
   startAge: number;
   endAge: number;
   currentAge: number;
+
+  // デフォルト表示範囲
+  defaultDisplayStartAge: number;
+  defaultDisplayEndAge: number;
 
   // 金融資産初期値
   initialCash: number;
@@ -52,7 +82,9 @@ export interface YearData {
 
   // 支出（上書き可能）
   livingCost: number | null; // nullはルールから自動計算
-  entertainmentCost: number; // 娯楽費
+  entertainmentCost: number; // 娯楽・旅行費
+  otherExpenses: number; // その他支出
+  otherExpensesMemo?: string; // その他支出のメモ
   investmentContribution: number; // 積立投資額
 
   // 住宅ローン（自動計算）
@@ -87,6 +119,7 @@ export interface YearData {
 export interface SimulationState {
   config: SimulationConfig;
   housePurchase: HousePurchase | null;
+  lifeEvents: LifeEvent[]; // ライフイベントのリスト
   yearData: YearData[];
-  selectedAge: number | null; // 右パネルで編集中の年齢
+  selectedAge: number | null; // 編集中の年齢
 }
