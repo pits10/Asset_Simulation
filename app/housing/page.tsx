@@ -1,113 +1,81 @@
 "use client";
 
-import React, { useState } from "react";
-import { Card, Button } from "@/components/shared";
+import React, { useMemo } from "react";
+import { Card } from "@/components/shared";
 import { useSimulationStore } from "@/lib/store/simulationStore";
-import { useUIStore } from "@/lib/store/uiStore";
 import { formatCurrency } from "@/lib/utils/format";
-import type { HousePurchase } from "@/lib/types";
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
-  AreaChart,
-  Area,
 } from "recharts";
 
 export default function HousingPage() {
-  const { yearData, ageRangeStart, ageRangeEnd, housePurchase, setHousePurchase, config } =
+  const { yearData, ageRangeStart, ageRangeEnd, housePurchase } =
     useSimulationStore();
-  const { addToast } = useUIStore();
 
-  const [isEditing, setIsEditing] = useState(!housePurchase);
+  const displayData = useMemo(() => {
+    return yearData.filter(
+      (d) => d.age >= ageRangeStart && d.age <= ageRangeEnd
+    );
+  }, [yearData, ageRangeStart, ageRangeEnd]);
 
-  // Form state
-  const [age, setAge] = useState(housePurchase?.age || config.currentAge);
-  const [propertyPrice, setPropertyPrice] = useState(
-    housePurchase?.propertyPrice || 40_000_000
-  );
-  const [downPayment, setDownPayment] = useState(
-    housePurchase?.downPayment || 8_000_000
-  );
-  const [loanTerm, setLoanTerm] = useState(housePurchase?.loanTerm || 35);
-  const [interestRate, setInterestRate] = useState(
-    housePurchase ? housePurchase.interestRate * 100 : 1.5
-  );
-  const [acquisitionCostRate, setAcquisitionCostRate] = useState(
-    housePurchase ? housePurchase.acquisitionCostRate * 100 : 7
-  );
-  const [propertyTaxRate, setPropertyTaxRate] = useState(
-    housePurchase ? housePurchase.propertyTaxRate * 100 : 1.4
-  );
-  const [annualMaintenanceCost, setAnnualMaintenanceCost] = useState(
-    housePurchase?.annualMaintenanceCost || 200_000
-  );
-  const [propertyAppreciationRate, setPropertyAppreciationRate] = useState(
-    housePurchase ? housePurchase.propertyAppreciationRate * 100 : -1
-  );
+  const housingData = useMemo(() => {
+    if (!housePurchase) return null;
 
-  const loanAmount = propertyPrice - downPayment;
-  const acquisitionCost = propertyPrice * (acquisitionCostRate / 100);
-  const totalCost = propertyPrice + acquisitionCost;
+    const purchaseData = displayData.filter(
+      (d) => d.age >= housePurchase.age
+    );
 
-  // Calculate monthly payment (元利均等)
-  const monthlyRate = interestRate / 100 / 12;
-  const numPayments = loanTerm * 12;
-  const monthlyPayment =
-    monthlyRate > 0
-      ? (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
-        (Math.pow(1 + monthlyRate, numPayments) - 1)
-      : loanAmount / numPayments;
-  const annualPayment = monthlyPayment * 12;
+    if (purchaseData.length === 0) return null;
 
-  const filteredData = yearData.filter(
-    (data) => data.age >= ageRangeStart && data.age <= ageRangeEnd
-  );
-
-  // Prepare mortgage balance chart data
-  const mortgageData = filteredData
-    .filter((data) => data.mortgageBalance > 0)
-    .map((data) => ({
-      age: data.age,
-      残債: data.mortgageBalance,
-      不動産評価額: data.propertyValue,
+    const chartData = purchaseData.map((d) => ({
+      age: `${d.age}歳`,
+      資産価値: d.propertyValue,
+      ローン残債: d.mortgageBalance,
+      純資産価値: d.propertyValue - d.mortgageBalance,
     }));
 
-  const handleSave = () => {
-    const purchase: HousePurchase = {
-      age,
-      propertyPrice,
-      downPayment,
-      loanAmount,
-      interestRate: interestRate / 100,
-      loanTerm,
-      acquisitionCostRate: acquisitionCostRate / 100,
-      propertyTaxRate: propertyTaxRate / 100,
-      annualMaintenanceCost,
-      propertyAppreciationRate: propertyAppreciationRate / 100,
+    const paymentData = purchaseData.map((d) => ({
+      age: `${d.age}歳`,
+      元金: d.mortgagePrincipal,
+      利息: d.mortgageInterest,
+      合計: d.mortgagePayment,
+    }));
+
+    const totalPaid = purchaseData.reduce(
+      (sum, d) => sum + d.mortgagePayment,
+      0
+    );
+    const totalInterest = purchaseData.reduce(
+      (sum, d) => sum + d.mortgageInterest,
+      0
+    );
+    const totalPrincipal = purchaseData.reduce(
+      (sum, d) => sum + d.mortgagePrincipal,
+      0
+    );
+
+    return {
+      chartData,
+      paymentData,
+      purchaseData,
+      totalPaid,
+      totalInterest,
+      totalPrincipal,
     };
+  }, [displayData, housePurchase]);
 
-    setHousePurchase(purchase);
-    addToast("住宅購入情報を保存しました", "success");
-    setIsEditing(false);
-  };
-
-  const handleRemove = () => {
-    if (confirm("住宅購入情報を削除してもよろしいですか？")) {
-      setHousePurchase(null);
-      addToast("住宅購入情報を削除しました", "info");
-      setIsEditing(true);
-    }
-  };
-
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+  if (!housePurchase) {
+    return (
+      <div className="space-y-6 animate-fade-in">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
             住宅・不動産
@@ -116,369 +84,332 @@ export default function HousingPage() {
             住宅ローンと不動産の分析
           </p>
         </div>
-        {housePurchase && !isEditing && (
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => setIsEditing(true)}>
-              編集
-            </Button>
-            <Button variant="secondary" onClick={handleRemove}>
-              削除
-            </Button>
+
+        <Card padding="lg">
+          <div className="text-center py-12">
+            <svg
+              className="mx-auto h-16 w-16 text-slate-400 dark:text-slate-600 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-50 mb-2">
+              住宅購入が設定されていません
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 mb-4">
+              設定ページから住宅購入の設定を追加してください
+            </p>
           </div>
-        )}
+        </Card>
+      </div>
+    );
+  }
+
+  if (!housingData) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+            住宅・不動産
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
+            住宅ローンと不動産の分析
+          </p>
+        </div>
+        <Card padding="lg">
+          <div className="text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">
+              表示範囲内に住宅購入データがありません
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+          住宅・不動産
+        </h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-1">
+          住宅ローンと不動産の分析
+        </p>
       </div>
 
-      {/* Housing Input Form */}
+      {/* Purchase Summary */}
       <Card padding="lg">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-          住宅購入シミュレーション
-        </h2>
-
-        {!isEditing && housePurchase ? (
-          // Display mode
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">購入年齢</p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {housePurchase.age}歳
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">物件価格</p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {formatCurrency(housePurchase.propertyPrice)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">頭金</p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {formatCurrency(housePurchase.downPayment)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">借入額</p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {formatCurrency(housePurchase.loanAmount)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">金利</p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {(housePurchase.interestRate * 100).toFixed(2)}%
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">返済期間</p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {housePurchase.loanTerm}年
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                年間返済額（概算）
-              </p>
-              <p className="text-lg font-medium text-red-600 dark:text-red-400">
-                {formatCurrency(annualPayment)}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">固定資産税率</p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {(housePurchase.propertyTaxRate * 100).toFixed(2)}%
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                年間修繕費
-              </p>
-              <p className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                {formatCurrency(housePurchase.annualMaintenanceCost)}
-              </p>
-            </div>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
+          購入情報
+        </h3>
+        <div className="grid grid-cols-4 gap-6 text-sm">
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">
+              購入年齢
+            </p>
+            <p className="text-slate-900 dark:text-slate-50 font-semibold">
+              {housePurchase.age}歳
+            </p>
           </div>
-        ) : (
-          // Edit mode
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  購入年齢
-                </label>
-                <input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(parseInt(e.target.value))}
-                  min={config.startAge}
-                  max={config.endAge}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  物件価格
-                </label>
-                <input
-                  type="number"
-                  value={propertyPrice}
-                  onChange={(e) => setPropertyPrice(parseFloat(e.target.value))}
-                  step={1000000}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  頭金
-                </label>
-                <input
-                  type="number"
-                  value={downPayment}
-                  onChange={(e) => setDownPayment(parseFloat(e.target.value))}
-                  step={1000000}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  頭金比率: {((downPayment / propertyPrice) * 100).toFixed(1)}%
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  借入額（自動計算）
-                </label>
-                <div className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                  {formatCurrency(loanAmount)}
-                </div>
-              </div>
-            </div>
-
-            {/* Loan Terms */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  金利（%）
-                </label>
-                <input
-                  type="number"
-                  value={interestRate}
-                  onChange={(e) => setInterestRate(parseFloat(e.target.value))}
-                  step={0.1}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  返済期間（年）
-                </label>
-                <input
-                  type="number"
-                  value={loanTerm}
-                  onChange={(e) => setLoanTerm(parseInt(e.target.value))}
-                  min={1}
-                  max={50}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-            </div>
-
-            {/* Cost Estimates */}
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg space-y-2">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                返済シミュレーション
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">
-                    月額返済額（概算）
-                  </span>
-                  <span className="font-medium text-slate-900 dark:text-slate-100">
-                    {formatCurrency(monthlyPayment)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">
-                    年間返済額（概算）
-                  </span>
-                  <span className="font-medium text-slate-900 dark:text-slate-100">
-                    {formatCurrency(annualPayment)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">諸費用</span>
-                  <span className="font-medium text-slate-900 dark:text-slate-100">
-                    {formatCurrency(acquisitionCost)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">
-                    総支払額（概算）
-                  </span>
-                  <span className="font-medium text-slate-900 dark:text-slate-100">
-                    {formatCurrency(totalCost)}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Costs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  諸費用率（%）
-                </label>
-                <input
-                  type="number"
-                  value={acquisitionCostRate}
-                  onChange={(e) =>
-                    setAcquisitionCostRate(parseFloat(e.target.value))
-                  }
-                  step={0.1}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  登記費用、仲介手数料など
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  固定資産税率（%）
-                </label>
-                <input
-                  type="number"
-                  value={propertyTaxRate}
-                  onChange={(e) => setPropertyTaxRate(parseFloat(e.target.value))}
-                  step={0.1}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  年間修繕費
-                </label>
-                <input
-                  type="number"
-                  value={annualMaintenanceCost}
-                  onChange={(e) =>
-                    setAnnualMaintenanceCost(parseFloat(e.target.value))
-                  }
-                  step={10000}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                />
-              </div>
-            </div>
-
-            {/* Property Value */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                不動産価格変動率（%/年）
-              </label>
-              <input
-                type="number"
-                value={propertyAppreciationRate}
-                onChange={(e) =>
-                  setPropertyAppreciationRate(parseFloat(e.target.value))
-                }
-                step={0.1}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                マイナスの場合は価値が減少します（例: -1% = 年1%減価）
-              </p>
-            </div>
-
-            {/* Save Button */}
-            <div className="flex gap-3">
-              {housePurchase && (
-                <Button
-                  variant="secondary"
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1"
-                >
-                  キャンセル
-                </Button>
-              )}
-              <Button variant="primary" onClick={handleSave} className="flex-1">
-                保存
-              </Button>
-            </div>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">
+              物件価格
+            </p>
+            <p className="text-slate-900 dark:text-slate-50 font-semibold tabular-nums">
+              {formatCurrency(housePurchase.propertyPrice)}
+            </p>
           </div>
-        )}
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">頭金</p>
+            <p className="text-slate-900 dark:text-slate-50 font-semibold tabular-nums">
+              {formatCurrency(housePurchase.downPayment)}
+            </p>
+          </div>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">
+              借入額
+            </p>
+            <p className="text-brand-600 dark:text-brand-400 font-semibold tabular-nums">
+              {formatCurrency(housePurchase.loanAmount)}
+            </p>
+          </div>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">金利</p>
+            <p className="text-slate-900 dark:text-slate-50 font-semibold tabular-nums">
+              {(housePurchase.interestRate * 100).toFixed(2)}%
+            </p>
+          </div>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">
+              ローン期間
+            </p>
+            <p className="text-slate-900 dark:text-slate-50 font-semibold">
+              {housePurchase.loanTerm}年
+            </p>
+          </div>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">
+              返済完了年齢
+            </p>
+            <p className="text-slate-900 dark:text-slate-50 font-semibold">
+              {housePurchase.age + housePurchase.loanTerm}歳
+            </p>
+          </div>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 mb-1">
+              年間修繕費
+            </p>
+            <p className="text-slate-900 dark:text-slate-50 font-semibold tabular-nums">
+              {formatCurrency(housePurchase.annualMaintenanceCost)}
+            </p>
+          </div>
+        </div>
       </Card>
 
-      {/* Mortgage Chart */}
-      {housePurchase && mortgageData.length > 0 && (
-        <Card padding="lg">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-            住宅ローン残債と不動産評価額の推移
-          </h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={mortgageData}>
-              <defs>
-                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
-              <XAxis
-                dataKey="age"
-                stroke="#9ca3af"
-                tick={{ fill: "#9ca3af" }}
-                label={{ value: "年齢", position: "insideBottom", offset: -5 }}
-              />
-              <YAxis
-                stroke="#9ca3af"
-                tick={{ fill: "#9ca3af" }}
-                tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#1e293b",
-                  border: "1px solid #475569",
-                  borderRadius: "8px",
-                }}
-                labelStyle={{ color: "#f1f5f9" }}
-                formatter={(value: number) => formatCurrency(value)}
-              />
-              <Legend />
-              <Area
-                type="monotone"
-                dataKey="残債"
-                stroke="#ef4444"
-                fill="url(#colorBalance)"
-              />
-              <Area
-                type="monotone"
-                dataKey="不動産評価額"
-                stroke="#10b981"
-                fill="url(#colorValue)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+      {/* Payment Summary */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card padding="md">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+            総支払額
+          </p>
+          <p className="text-2xl font-semibold text-danger-600 dark:text-danger-400 tabular-nums">
+            {formatCurrency(housingData.totalPaid)}
+          </p>
         </Card>
-      )}
+        <Card padding="md">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+            元金
+          </p>
+          <p className="text-2xl font-semibold text-slate-900 dark:text-slate-50 tabular-nums">
+            {formatCurrency(housingData.totalPrincipal)}
+          </p>
+        </Card>
+        <Card padding="md">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+            利息
+          </p>
+          <p className="text-2xl font-semibold text-warning-600 dark:text-warning-400 tabular-nums">
+            {formatCurrency(housingData.totalInterest)}
+          </p>
+        </Card>
+      </div>
 
-      {!housePurchase && (
-        <Card padding="lg">
-          <div className="text-center py-8">
-            <p className="text-slate-600 dark:text-slate-400 mb-4">
-              住宅購入情報が設定されていません
-            </p>
-            <Button variant="primary" onClick={() => setIsEditing(true)}>
-              住宅購入を設定する
-            </Button>
-          </div>
-        </Card>
-      )}
+      {/* Property Value Chart */}
+      <Card padding="lg">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
+          資産価値とローン残債の推移
+        </h3>
+        <ResponsiveContainer width="100%" height={400}>
+          <AreaChart data={housingData.chartData}>
+            <defs>
+              <linearGradient id="colorProperty" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#4EE4C0" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#4EE4C0" stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id="colorDebt" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              className="stroke-slate-200 dark:stroke-slate-700"
+            />
+            <XAxis
+              dataKey="age"
+              className="text-xs fill-slate-600 dark:fill-slate-400"
+            />
+            <YAxis
+              className="text-xs fill-slate-600 dark:fill-slate-400"
+              tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                border: "1px solid #e2e8f0",
+                borderRadius: "8px",
+              }}
+              formatter={(value: number) => formatCurrency(value)}
+            />
+            <Legend />
+            <Area
+              type="monotone"
+              dataKey="資産価値"
+              stroke="#4EE4C0"
+              fill="url(#colorProperty)"
+            />
+            <Area
+              type="monotone"
+              dataKey="ローン残債"
+              stroke="#ef4444"
+              fill="url(#colorDebt)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Payment Breakdown Chart */}
+      <Card padding="lg">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
+          年間返済額の内訳
+        </h3>
+        <ResponsiveContainer width="100%" height={350}>
+          <AreaChart data={housingData.paymentData}>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              className="stroke-slate-200 dark:stroke-slate-700"
+            />
+            <XAxis
+              dataKey="age"
+              className="text-xs fill-slate-600 dark:fill-slate-400"
+            />
+            <YAxis
+              className="text-xs fill-slate-600 dark:fill-slate-400"
+              tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                border: "1px solid #e2e8f0",
+                borderRadius: "8px",
+              }}
+              formatter={(value: number) => formatCurrency(value)}
+            />
+            <Legend />
+            <Area
+              type="monotone"
+              dataKey="元金"
+              stackId="1"
+              stroke="#4EE4C0"
+              fill="#4EE4C0"
+            />
+            <Area
+              type="monotone"
+              dataKey="利息"
+              stackId="1"
+              stroke="#f59e0b"
+              fill="#f59e0b"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Detailed Table */}
+      <Card padding="lg">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
+          年別返済スケジュール
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-700">
+                <th className="text-left py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
+                  年齢
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
+                  年間返済額
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
+                  元金
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
+                  利息
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
+                  残債
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
+                  資産価値
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-slate-900 dark:text-slate-50">
+                  純資産
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {housingData.purchaseData.map((data) => {
+                const netValue = data.propertyValue - data.mortgageBalance;
+                return (
+                  <tr
+                    key={data.age}
+                    className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-slate-900 dark:text-slate-50 font-medium">
+                      {data.age}歳
+                    </td>
+                    <td className="py-3 px-4 text-right text-danger-600 dark:text-danger-400 font-medium tabular-nums">
+                      {formatCurrency(data.mortgagePayment)}
+                    </td>
+                    <td className="py-3 px-4 text-right text-slate-700 dark:text-slate-300 tabular-nums">
+                      {formatCurrency(data.mortgagePrincipal)}
+                    </td>
+                    <td className="py-3 px-4 text-right text-warning-600 dark:text-warning-400 tabular-nums">
+                      {formatCurrency(data.mortgageInterest)}
+                    </td>
+                    <td className="py-3 px-4 text-right text-danger-600 dark:text-danger-400 font-semibold tabular-nums">
+                      {formatCurrency(data.mortgageBalance)}
+                    </td>
+                    <td className="py-3 px-4 text-right text-brand-600 dark:text-brand-400 font-medium tabular-nums">
+                      {formatCurrency(data.propertyValue)}
+                    </td>
+                    <td className="py-3 px-4 text-right text-slate-900 dark:text-slate-50 font-semibold tabular-nums">
+                      {formatCurrency(netValue)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }

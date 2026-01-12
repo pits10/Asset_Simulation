@@ -136,14 +136,10 @@ export const Sidebar: React.FC = () => {
       <div className="h-16 px-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">💰</span>
-            </div>
-            <div>
-              <h1 className="text-base font-bold text-slate-900 dark:text-slate-50">
-                Asset Sim
-              </h1>
-            </div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              <span className="text-brand-500 dark:text-brand-400">FIRE</span>
+              <span className="text-slate-700 dark:text-slate-300">?</span>
+            </h1>
           </div>
         )}
         <button
@@ -184,7 +180,7 @@ export const Sidebar: React.FC = () => {
                 relative group
                 ${
                   isActive
-                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                    ? "bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400"
                     : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                 }
                 ${isCollapsed ? "justify-center" : ""}
@@ -192,7 +188,7 @@ export const Sidebar: React.FC = () => {
               title={isCollapsed ? item.name : ""}
             >
               {isActive && !isCollapsed && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 dark:bg-blue-400 rounded-r"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-600 dark:bg-brand-400 rounded-r"></div>
               )}
               <span className={isCollapsed ? "" : "ml-1"}>{item.icon}</span>
               {!isCollapsed && <span>{item.name}</span>}
@@ -216,7 +212,7 @@ export const Sidebar: React.FC = () => {
             relative group
             ${
               pathname === settingsItem.href
-                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                ? "bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400"
                 : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
             }
             ${isCollapsed ? "justify-center" : ""}
@@ -224,7 +220,7 @@ export const Sidebar: React.FC = () => {
           title={isCollapsed ? settingsItem.name : ""}
         >
           {pathname === settingsItem.href && !isCollapsed && (
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 dark:bg-blue-400 rounded-r"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-600 dark:bg-brand-400 rounded-r"></div>
           )}
           <span className={isCollapsed ? "" : "ml-1"}>{settingsItem.icon}</span>
           {!isCollapsed && <span>{settingsItem.name}</span>}

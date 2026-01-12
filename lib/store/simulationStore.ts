@@ -10,6 +10,14 @@ import type {
 } from "../types";
 import { calculateSimulation, initializeYearData } from "../utils/calculations";
 
+interface OnboardingData {
+  name: string;
+  currentAge: number;
+  annualSalary: number;
+  currentAssets: number;
+  annualInvestment: number;
+}
+
 interface SimulationStore extends SimulationState {
   // 年次データの上書き情報
   yearDataOverrides: Map<number, Partial<YearData>>;
@@ -31,6 +39,8 @@ interface SimulationStore extends SimulationState {
   resetToDefaults: () => void;
   importData: (data: string) => void;
   exportData: () => string;
+  initializeFromOnboarding: (data: OnboardingData) => void;
+  isFirstTimeUser: () => boolean;
 }
 
 // デフォルト設定
@@ -178,6 +188,42 @@ export const useSimulationStore = create<SimulationStore>()(
           yearDataOverrides: Object.fromEntries(yearDataOverrides),
         };
         return JSON.stringify(data, null, 2);
+      },
+
+      initializeFromOnboarding: (data) => {
+        const newConfig: SimulationConfig = {
+          userName: data.name,
+          startAge: data.currentAge,
+          endAge: 65,
+          currentAge: data.currentAge,
+          defaultDisplayStartAge: data.currentAge,
+          defaultDisplayEndAge: Math.min(data.currentAge + 30, 65),
+          initialCash: Math.round(data.currentAssets * 0.3),
+          initialInvestment: Math.round(data.currentAssets * 0.7),
+          investmentReturnRate: 0.05,
+          investmentThreshold: Math.round(data.annualSalary * 0.5),
+          investmentStrategy: "threshold",
+          investmentRatio: 0.7,
+          baseSalary: data.annualSalary,
+          salaryGrowthRate: 0.02,
+          baseLivingCost: Math.round(data.annualSalary * 0.6),
+          livingCostInflationRate: 0.01,
+        };
+
+        set({
+          config: newConfig,
+          housePurchase: null,
+          lifeEvents: [],
+          yearDataOverrides: new Map(),
+          ageRangeStart: data.currentAge,
+          ageRangeEnd: Math.min(data.currentAge + 30, 65),
+        });
+        get().recalculate();
+      },
+
+      isFirstTimeUser: () => {
+        const { config } = get();
+        return config.userName === "山田 太郎";
       },
     }),
     {
