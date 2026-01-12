@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useSimulationStore } from "@/lib/store/simulationStore";
 import { formatCurrency } from "@/lib/utils/format";
+import { YearDataEditModal } from "@/components/shared";
 
 export default function SimulationPage() {
   const { yearData, ageRangeStart, ageRangeEnd } = useSimulationStore();
+  const [editingAge, setEditingAge] = useState<number | null>(null);
 
   const filteredData = yearData.filter(
     (data) => data.age >= ageRangeStart && data.age <= ageRangeEnd
@@ -88,6 +90,7 @@ export default function SimulationPage() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
+                      onClick={() => setEditingAge(data.age)}
                       className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                       title="編集"
                     >
@@ -117,6 +120,15 @@ export default function SimulationPage() {
         <div className="text-center py-12 text-slate-500 dark:text-slate-400">
           データがありません。設定ページで初期値を設定してください。
         </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingAge !== null && (
+        <YearDataEditModal
+          isOpen={editingAge !== null}
+          onClose={() => setEditingAge(null)}
+          age={editingAge}
+        />
       )}
     </div>
   );

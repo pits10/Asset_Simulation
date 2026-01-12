@@ -5,3 +5,4 @@ export { ThemeToggle } from "./ThemeToggle";
 export { ThemeProvider } from "./ThemeProvider";
 export { Tooltip } from "./Tooltip";
 export { ToastContainer } from "./Toast";
+export { YearDataEditModal } from "./YearDataEditModal";
