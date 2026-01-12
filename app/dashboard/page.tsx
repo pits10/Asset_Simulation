@@ -8,15 +8,22 @@ import {
   AssetCompositionChart,
 } from "@/components/dashboard";
 import { useSimulationStore } from "@/lib/store/simulationStore";
+import { useUIStore } from "@/lib/store/uiStore";
 
 export default function DashboardPage() {
-  const { yearData, recalculate } = useSimulationStore();
+  const { yearData, recalculate, isFirstTimeUser } = useSimulationStore();
+  const { openModal } = useUIStore();
 
   useEffect(() => {
     if (yearData.length === 0) {
       recalculate();
     }
-  }, [yearData.length, recalculate]);
+
+    // 初回ユーザーの場合、オンボーディングモーダルを表示
+    if (isFirstTimeUser()) {
+      openModal("onboarding");
+    }
+  }, [yearData.length, recalculate, isFirstTimeUser, openModal]);
 
   return (
     <div className="space-y-6 animate-fade-in">

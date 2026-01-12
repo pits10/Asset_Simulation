@@ -1,14 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, Button } from "@/components/shared";
 import { useSimulationStore } from "@/lib/store/simulationStore";
 import { useUIStore } from "@/lib/store/uiStore";
 import { formatCurrency } from "@/lib/utils/format";
+import { EditConfigModal } from "@/components/settings";
+
+type EditType = "personal-info" | "income" | "expense" | "investment" | "housing";
 
 export default function SettingsPage() {
   const { config, housePurchase, resetToDefaults } = useSimulationStore();
   const { addToast } = useUIStore();
+  const [editingSection, setEditingSection] = useState<EditType | null>(null);
 
   const handleReset = () => {
     if (confirm("全ての設定をデフォルトに戻しますか？")) {
@@ -34,7 +38,11 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             個人情報
           </h3>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditingSection("personal-info")}
+          >
             編集
           </Button>
         </div>
@@ -72,7 +80,11 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             収入設定
           </h3>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditingSection("income")}
+          >
             編集
           </Button>
         </div>
@@ -100,7 +112,11 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             支出設定
           </h3>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditingSection("expense")}
+          >
             編集
           </Button>
         </div>
@@ -130,7 +146,11 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             投資戦略
           </h3>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditingSection("investment")}
+          >
             編集
           </Button>
         </div>
@@ -176,7 +196,11 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
             住宅設定
           </h3>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditingSection("housing")}
+          >
             {housePurchase ? "編集" : "追加"}
           </Button>
         </div>
@@ -234,6 +258,15 @@ export default function SettingsPage() {
           最終保存: ブラウザストレージに自動保存
         </p>
       </Card>
+
+      {/* Edit Modals */}
+      {editingSection && (
+        <EditConfigModal
+          type={editingSection}
+          isOpen={true}
+          onClose={() => setEditingSection(null)}
+        />
+      )}
     </div>
   );
 }

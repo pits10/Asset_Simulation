@@ -7,6 +7,7 @@ type ModalType =
   | "expense"
   | "investment"
   | "housing"
+  | "onboarding"
   | null;
 
 interface Toast {

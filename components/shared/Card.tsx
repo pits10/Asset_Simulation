@@ -85,7 +85,7 @@ export const KPICard: React.FC<KPICardProps> = ({
           )}
         </div>
         {icon && (
-          <div className="text-blue-500 dark:text-blue-400 opacity-75">
+          <div className="text-brand-500 dark:text-brand-400 opacity-75">
             {icon}
           </div>
         )}

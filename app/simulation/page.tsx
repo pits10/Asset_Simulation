@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useSimulationStore } from "@/lib/store/simulationStore";
 import { formatCurrency } from "@/lib/utils/format";
+import { EditYearModal } from "@/components/simulation";
 
 export default function SimulationPage() {
   const { yearData, ageRangeStart, ageRangeEnd } = useSimulationStore();
+  const [editingAge, setEditingAge] = useState<number | null>(null);
 
   const filteredData = yearData.filter(
     (data) => data.age >= ageRangeStart && data.age <= ageRangeEnd
@@ -57,7 +59,7 @@ export default function SimulationPage() {
                 <tr
                   key={data.age}
                   className={`
-                    hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors
+                    hover:bg-brand-50 dark:hover:bg-brand-900/10 transition-colors
                     ${index % 2 === 0 ? "bg-white dark:bg-slate-800" : "bg-slate-50 dark:bg-slate-800/50"}
                   `}
                 >
@@ -76,8 +78,8 @@ export default function SimulationPage() {
                   <td
                     className={`px-4 py-3 text-right tabular-nums font-medium ${
                       data.cashFlow >= 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-600 dark:text-red-400"
+                        ? "text-brand-600 dark:text-brand-400"
+                        : "text-danger-600 dark:text-danger-400"
                     }`}
                   >
                     {data.cashFlow >= 0 ? "+" : ""}
@@ -88,6 +90,7 @@ export default function SimulationPage() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
+                      onClick={() => setEditingAge(data.age)}
                       className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                       title="編集"
                     >
@@ -118,6 +121,13 @@ export default function SimulationPage() {
           データがありません。設定ページで初期値を設定してください。
         </div>
       )}
+
+      {/* Edit Modal */}
+      <EditYearModal
+        age={editingAge}
+        isOpen={editingAge !== null}
+        onClose={() => setEditingAge(null)}
+      />
     </div>
   );
 }

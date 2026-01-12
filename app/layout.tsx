@@ -3,10 +3,11 @@ import "./globals.css";
 import { Sidebar, TopBar, AgeRangeSelector } from "@/components/layout";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { ToastContainer } from "@/components/shared";
+import { OnboardingModal } from "@/components/onboarding";
 
 export const metadata: Metadata = {
-  title: "資産シミュレーション | 人生設計ツール",
-  description: "海外Fintech水準の資産シミュレーション・人生設計ダッシュボード",
+  title: "FIRE? | 資産シミュレーション",
+  description: "あなたは何歳でFIREできる？ 海外Fintech水準の資産シミュレーション・人生設計ツール",
 };
 
 export default function RootLayout({
@@ -40,6 +41,7 @@ export default function RootLayout({
 
           {/* Global Modals */}
           <AgeRangeSelector />
+          <OnboardingModal />
 
           {/* Toast Notifications */}
           <ToastContainer />
